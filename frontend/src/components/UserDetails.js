@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   TextField,
   Button,
@@ -7,65 +7,78 @@ import {
   Box,
   Paper,
   Grid,
-  Avatar,
 } from "@mui/material";
-import { LockOutlined as LockOutlinedIcon } from "@mui/icons-material";
-import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { Formik, Form, Field } from "formik";
 import * as Yup from "yup";
+import { Formik, Form, Field } from "formik";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useNavigate, useParams } from "react-router-dom";
 
-export const SignupSchema = Yup.object().shape({
+const UpdateSchema = Yup.object().shape({
   name: Yup.string().required("Name is required"),
   email: Yup.string().email("Invalid email").required("Email is required"),
-  password: Yup.string()
-    .min(6, "Password must be at least 6 characters")
-    .required("Password is required"),
   username: Yup.string().required("Username is required"),
   contactInfo: Yup.string().required("Contact Info is required"),
 });
 
-const Signup = () => {
+const UserDetails = () => {
+  const { id } = useParams();
   const navigate = useNavigate();
+  const [userDetail, setUserDetail] = useState();
 
-  const handleSubmit = async (values) => {
-    try {
-      await axios.post("http://localhost:5000/api/v1/register", values);
-      toast.success("Registration successful");
-      navigate("/login");
-    } catch (error) {
-      toast.error("Error during registration");
-      console.error("Error during registration", error);
-    }
+  const initialValue = {
+    name: userDetail?.name || "",
+    email: userDetail?.email || "",
+    username: userDetail?.username || "",
+    contactInfo: userDetail?.contactInfo || "",
   };
 
+  const fetchUsersDetails = async (id) => {
+    try {
+      const response = await axios.get(
+        `http://localhost:5000/api/v1/admin/users/${id}`
+      );
+      setUserDetail(response.data.user);
+    } catch (error) {
+      toast.error("Failed to fetch users");
+      console.error("Error fetching users:", error);
+    }
+  };
+  useEffect(() => {
+    fetchUsersDetails(id);
+  }, [id]);
+  const handleSubmit = async (values) => {
+    try {
+      const response = await axios.put(
+        `http://localhost:5000/api/v1/admin/user/${id}`,
+        values
+      );
+      console.log("response", response.data);
+      if (response.data) {
+        navigate("/userloginlist");
+      }
+    } catch (error) {
+      toast.error("Failed to fetch users");
+      console.error("Error fetching users:", error);
+    }
+  };
   return (
     <Container component="main" maxWidth="xs">
       <ToastContainer />
       <Paper elevation={6} sx={{ padding: 4, marginTop: 8 }}>
         <Box display="flex" flexDirection="column" alignItems="center">
-          <Avatar sx={{ m: 1, bgcolor: "primary.main" }}>
-            <LockOutlinedIcon />
-          </Avatar>
           <Typography component="h1" variant="h5">
-            Sign Up
+            Update User
           </Typography>
           <Formik
-            initialValues={{
-              name: "",
-              email: "",
-              password: "",
-              username: "",
-              contactInfo: "",
-            }}
-            validationSchema={SignupSchema}
+            initialValues={initialValue}
+            enableReinitialize={true}
+            validationSchema={UpdateSchema}
             onSubmit={handleSubmit}
           >
             {({ errors, touched, values }) => (
               <Form style={{ width: "100%", marginTop: 1 }}>
-                {console.log(values, "fghjk")}
                 <Grid container spacing={2}>
                   <Grid item xs={12}>
                     <Field
@@ -88,18 +101,6 @@ const Signup = () => {
                       fullWidth
                       error={touched.email && !!errors.email}
                       helperText={touched.email && errors.email}
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <Field
-                      as={TextField}
-                      label="Password"
-                      name="password"
-                      type="password"
-                      margin="normal"
-                      fullWidth
-                      error={touched.password && !!errors.password}
-                      helperText={touched.password && errors.password}
                     />
                   </Grid>
                   <Grid item xs={12}>
@@ -132,7 +133,7 @@ const Signup = () => {
                   color="primary"
                   sx={{ mt: 3, mb: 2 }}
                 >
-                  Sign Up
+                  Update
                 </Button>
               </Form>
             )}
@@ -143,4 +144,4 @@ const Signup = () => {
   );
 };
 
-export default Signup;
+export default UserDetails;

@@ -21,8 +21,11 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
+import EditIcon from "@mui/icons-material/Edit";
+import { useNavigate } from "react-router-dom";
 const UserLoginList = () => {
+  const navigate = useNavigate();
+
   const [users, setUsers] = useState([]);
   const [open, setOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState(null);
@@ -98,6 +101,12 @@ const UserLoginList = () => {
                 <TableCell align="center">{user.username}</TableCell>
                 <TableCell align="center">{user._id}</TableCell>
                 <TableCell align="center">
+                  <IconButton
+                    color="primary"
+                    onClick={() => navigate(`/userloginlist/${user._id}`)}
+                  >
+                    <EditIcon />
+                  </IconButton>
                   <IconButton
                     color="error"
                     onClick={() => handleClickOpen(user._id)}
